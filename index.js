@@ -1,9 +1,24 @@
 const ambientlib = require('ambient-attx4');
-const accellib = require('accel-mma84');
+const firebase = require('firebase');
 const tessel = require('tessel');
 
 const ambient = ambientlib.use(tessel.port['A']);
-const accel = accellib.use(tessel.port['B']);
+
+const config = {
+  apiKey: "<enter apiKey",
+  authDomain: "<enter authDomain>",
+  databaseURL: "<enter databaseURL>",
+  projectId: "<enter projectId>",
+  storageBucket: "<enter storageBuckets>",
+  messagingSenderId: "<enter messagingSenderId>"
+};
+
+firebase.initializeApp(config);
+
+const db = firebase.database();
+const ref = db.ref("sensor-data");
+const ambianceRef = ref.child("ambiance");
+const newAmbianceRef = ambianceRef.push();
 
 ambient.on('ready', () => {
   setInterval(() => {
@@ -11,27 +26,17 @@ ambient.on('ready', () => {
       if (err) throw err;
       ambient.getSoundLevel( (err, sounddata) => {
         if (err) throw err;
-        console.log('Light level:', lightdata.toFixed(8));
-        console.log('Sound level:', sounddata.toFixed(8));
+        newAmbianceRef.set({
+          light: lightdata.toFixed(4),
+          sound: sounddata.toFixed(4)
+        })
+        console.log('Light level:', lightdata.toFixed(4));
+        console.log('Sound level:', sounddata.toFixed(4));
       });
     });
-  }, 5000);
+  }, 30000);
 });
 
 ambient.on('error', (err) => {
   console.log('Ambient error:', err);
 });
-
-accel.on('ready', () => {
-  accel.on('data', (xyz) => {
-    console.log(
-      `x: `, xyz[0].toFixed(2),
-      `y: `, xyz[1].toFixed(2),
-      'z: ', xyz[2].toFixed(2)
-    );
-  }, 5000);
-});
-
-accel.on('error', (err) => {
-  console.log('Accel error:', err);
-})
