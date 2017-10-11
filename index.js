@@ -24,14 +24,19 @@ ambient.on('ready', () => {
       if (err) throw err;
       ambient.getSoundLevel( (err, sounddata) => {
         if (err) throw err;
-        const ambienceRef = ref.child('ambience/' + Date.now());
-        ambienceRef.set({
-          light: lightdata.toFixed(4) * 100,
-          sound: sounddata.toFixed(4) * 100
+        const lightSensorRef = ref.child('ambience/lightSensor');
+        const soundSensorRef = ref.child('ambience/soundSensor');
+        lightSensorRef.push().set({
+          data: lightdata.toFixed(4) * 100,
+          time: Date.now()
+        });
+        soundSensorRef.push().set({
+          data: sounddata.toFixed(4) * 100,
+          time: Date.now()
         });
       });
     });
-  }, 30000);
+  }, 3000);
 });
 
 ambient.on('error', (err) => {
